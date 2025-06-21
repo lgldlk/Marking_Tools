@@ -5,6 +5,7 @@ import FileList from './components/FileList';
 import BatchTools from './components/BatchTools';
 import LanguageSelector from './components/LanguageSelector';
 import TranslationServiceSelector from './components/TranslationServiceSelector';
+import ImageBatchEditor from './components/ImageBatchEditor';
 import { API_BASE_URL } from './config/index';
 
 axios.defaults.headers.common['Content-Type'] = 'application/json';
@@ -16,6 +17,7 @@ function App() {
   const [sourceLang, setSourceLang] = useState('en');
   const [targetLang, setTargetLang] = useState('zh-CN');
   const [translationService, setTranslationService] = useState('google');
+  const [activeTab, setActiveTab] = useState('translation');
 
   const processFiles = async (acceptedFiles) => {
     setLoading(true);
@@ -311,45 +313,86 @@ function App() {
       </header>
 
       <main className='container mx-auto py-6 px-4'>
-        {error && <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4'>{error}</div>}
+        <h1 className='text-2xl font-bold mb-6'>Marking Tools</h1>
 
-        <div className='bg-white rounded-lg shadow-md p-6 mb-6'>
-          <div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-6'>
-            <h2 className='text-xl font-bold mb-4 md:mb-0'>文件处理</h2>
-            <div className='flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-6'>
-              <TranslationServiceSelector onServiceChange={handleServiceChange} currentService={translationService} />
-              <LanguageSelector onLanguageChange={handleSourceLanguageChange} currentLang={sourceLang} isSourceLang={true} />
-              <LanguageSelector onLanguageChange={handleTargetLanguageChange} currentLang={targetLang} />
-            </div>
+        {error && (
+          <div className='bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4'>
+            <strong>错误：</strong> {error}
           </div>
-          <FileUploader onUpload={processFiles} loading={loading} />
+        )}
+
+        <div className='border-b border-gray-200 mb-6'>
+          <nav className='-mb-px flex'>
+            <button
+              onClick={() => setActiveTab('translation')}
+              className={`py-2 px-4 border-b-2 font-medium text-sm ${
+                activeTab === 'translation'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              图文翻译
+            </button>
+            <button
+              onClick={() => setActiveTab('image-editor')}
+              className={`py-2 px-4 border-b-2 font-medium text-sm ${
+                activeTab === 'image-editor'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              图片批量裁剪
+            </button>
+          </nav>
         </div>
 
-        {files.length > 0 && (
-          <div className='space-y-6'>
-            <div className='bg-white rounded-lg shadow-md p-6 mb-6'>
-              <BatchTools onBatchUpdate={handleBatchUpdate} />
+        {activeTab === 'translation' ? (
+          <>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
+              <div>
+                <h2 className='text-xl font-bold mb-2'>源语言</h2>
+                <LanguageSelector value={sourceLang} onChange={handleSourceLanguageChange} includeAuto={true} />
+              </div>
+              <div>
+                <h2 className='text-xl font-bold mb-2'>目标语言</h2>
+                <LanguageSelector value={targetLang} onChange={handleTargetLanguageChange} includeAuto={false} />
+              </div>
             </div>
 
-            <div className='bg-white rounded-lg shadow-md p-6 mb-6'>
-              <FileList
-                files={files}
-                onTextUpdate={handleTextUpdate}
-                targetLang={targetLang}
-                sourceLang={sourceLang}
-                translationService={translationService}
-              />
+            <div className='mb-6'>
+              <h2 className='text-xl font-bold mb-2'>翻译服务</h2>
+              <TranslationServiceSelector onServiceChange={handleServiceChange} currentService={translationService} />
             </div>
 
-            <div className='flex justify-center'>
-              <button
-                onClick={handleDownload}
-                className='bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200'
-              >
-                下载标记文件
-              </button>
+            <div className='mb-6'>
+              <FileUploader onUpload={processFiles} loading={loading} />
             </div>
-          </div>
+
+            {files.length > 0 && (
+              <>
+                <div className='mb-6'>
+                  <h2 className='text-xl font-bold mb-2'>批量工具</h2>
+                  <BatchTools onBatchUpdate={handleBatchUpdate} />
+                </div>
+
+                <div className='mb-6'>
+                  <h2 className='text-xl font-bold mb-2'>文件列表</h2>
+                  <FileList files={files} onTextUpdate={handleTextUpdate} onDownload={handleDownload} loading={loading} />
+                </div>
+
+                <div className='flex justify-center mb-6'>
+                  <button
+                    onClick={handleDownload}
+                    className='bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-200'
+                  >
+                    下载标记文件
+                  </button>
+                </div>
+              </>
+            )}
+          </>
+        ) : (
+          <ImageBatchEditor />
         )}
       </main>
 
