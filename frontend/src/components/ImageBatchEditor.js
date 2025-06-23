@@ -118,16 +118,33 @@ const ImageBatchEditor = () => {
       const zip = new JSZip();
       const promises = [];
 
+      // 用于跟踪文件名，确保唯一性
+      const fileNameMap = new Map();
+
       // 处理每个图片
       for (const image of images) {
         const blob = image.editedBlob || image.originalFile;
         const fileExtension = outputFormat === 'original' ? image.name.split('.').pop() : outputFormat;
 
-        const fileName = image.name.split('.')[0] + '.' + fileExtension;
+        // 获取基本文件名（不含扩展名）
+        const baseFileName = image.name.split('.')[0];
+
+        // 确保文件名唯一
+        let uniqueFileName = baseFileName + '.' + fileExtension;
+        let counter = 1;
+
+        // 如果文件名已存在，添加计数器后缀
+        while (fileNameMap.has(uniqueFileName)) {
+          uniqueFileName = `${baseFileName}_${counter}.${fileExtension}`;
+          counter++;
+        }
+
+        // 记录此文件名已使用
+        fileNameMap.set(uniqueFileName, true);
 
         if (outputFormat === 'original' || (blob === image.originalFile && !image.croppedData)) {
           // 直接使用原始文件
-          zip.file(fileName, blob);
+          zip.file(uniqueFileName, blob);
         } else {
           // 转换为选定格式并压缩
           const promise = new Promise((resolve) => {
@@ -146,7 +163,7 @@ const ImageBatchEditor = () => {
               // 转换为blob
               canvas.toBlob(
                 (convertedBlob) => {
-                  zip.file(fileName, convertedBlob);
+                  zip.file(uniqueFileName, convertedBlob);
                   resolve();
                 },
                 `image/${outputFormat}`,
