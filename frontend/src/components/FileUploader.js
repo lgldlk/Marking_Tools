@@ -15,8 +15,13 @@ const FileUploader = ({ onUpload, loading }) => {
     onDrop,
     accept: {
       'application/zip': ['.zip'],
-      'image/*': ['.png', '.jpg', '.jpeg'],
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp'],
       'text/plain': ['.txt'],
+      'text/html': ['.html', '.htm'],
+      'text/markdown': ['.md'],
+      'application/json': ['.json'],
+      'text/javascript': ['.js'],
+      'text/css': ['.css'],
     },
     multiple: true,
   });
@@ -44,7 +49,7 @@ const FileUploader = ({ onUpload, loading }) => {
             ) : (
               <div>
                 <p className='mb-2'>将文件拖到此处，或点击上传</p>
-                <p className='text-sm text-gray-500'>请同时选择图片文件和对应的TXT文件</p>
+                <p className='text-sm text-gray-500'>支持多种文件格式，包括图片、文本和其他常见文件</p>
               </div>
             )}
           </div>
@@ -52,7 +57,7 @@ const FileUploader = ({ onUpload, loading }) => {
       </div>
 
       <div className='mt-4 text-sm text-gray-600'>
-        <p>请上传图片文件(.jpg, .png, .jpeg)和对应的同名TXT文件。例如: image1.jpg 和 image1.txt</p>
+        <p>支持的文件格式: 图片(.jpg, .png, .jpeg, .gif, .webp), 文本文件(.txt, .md, .html), 以及其他常见文件(.js, .css, .json)</p>
       </div>
     </div>
   );

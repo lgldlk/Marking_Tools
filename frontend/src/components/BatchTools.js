@@ -23,9 +23,22 @@ const BatchTools = ({ onBatchUpdate }) => {
     onBatchUpdate(action, content, position, findText, replaceText);
   };
 
+  const handleTranslateAll = () => {
+    onBatchUpdate('translate-all');
+  };
+
   return (
     <div>
       <h2 className='text-xl font-bold mb-4'>批量操作</h2>
+
+      <div className='mb-6'>
+        <button
+          onClick={handleTranslateAll}
+          className='bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-200 mr-4'
+        >
+          全部自动翻译
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit}>
         <div className='mb-4'>
