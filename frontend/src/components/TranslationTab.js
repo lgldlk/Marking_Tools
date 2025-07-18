@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import FileUploader from './FileUploader';
 import FileList from './FileList';
 import BatchTools from './BatchTools';
@@ -25,6 +25,13 @@ const TranslationTab = () => {
 
   // Combine errors from both hooks
   const error = translationError || fileError;
+
+  // Clear errors when component unmounts
+  useEffect(() => {
+    return () => {
+      setError(null);
+    };
+  }, [setError]);
 
   return (
     <>
@@ -59,7 +66,15 @@ const TranslationTab = () => {
 
           <div className='mb-6'>
             <h2 className='text-xl font-bold mb-2'>文件列表</h2>
-            <FileList files={files} onTextUpdate={handleTextUpdate} onDownload={handleDownload} loading={loading} />
+            <FileList
+              files={files}
+              onTextUpdate={handleTextUpdate}
+              onDownload={handleDownload}
+              loading={loading}
+              targetLang={targetLang}
+              sourceLang={sourceLang}
+              translationService={translationService}
+            />
           </div>
 
           <div className='flex justify-center mb-6'>

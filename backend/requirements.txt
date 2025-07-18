@@ -4,3 +4,5 @@ python-dotenv==1.0.0
 requests>=2.32.2
 translators==6.0.1
 Werkzeug>=3.1.0
+openai==1.14.0
+python-multipart==0.0.9
