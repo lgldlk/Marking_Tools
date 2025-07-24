@@ -9,6 +9,7 @@ import base64
 import json
 import sys
 import traceback
+import io
 from openai import OpenAI
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
@@ -25,7 +26,7 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 # 增加最大内容长度限制到100MB
-app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max upload size
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB
 
 # 可用翻译服务
 TRANSLATION_SERVICES = [
@@ -37,6 +38,35 @@ TRANSLATION_SERVICES = [
     "alibaba",
     "deepl",
 ]
+
+
+def detect_image_format(base64_data):
+    """
+    根据base64图片数据检测图片格式
+    返回格式: png, jpeg, gif, webp等
+    """
+    # 解码base64数据的前几个字节来检测格式
+    try:
+        # 获取图片二进制数据
+        image_data = base64.b64decode(base64_data)
+        
+        # 检查文件头部特征
+        if image_data.startswith(b'\x89PNG\r\n\x1a\n'):
+            return 'png'
+        elif image_data.startswith(b'\xff\xd8\xff'):
+            return 'jpeg'  # JPEG格式
+        elif image_data.startswith(b'GIF87a') or image_data.startswith(b'GIF89a'):
+            return 'gif'
+        elif image_data.startswith(b'RIFF') and image_data[8:12] == b'WEBP':
+            return 'webp'
+        elif image_data.startswith(b'BM'):
+            return 'bmp'
+        else:
+            # 默认返回png
+            return 'png'
+    except Exception as e:
+        print(f"Error detecting image format: {str(e)}")
+        return 'png'  # 出错时默认为png
 
 
 def translate_text(text, service="google", source_lang="auto", target_lang="en"):
@@ -177,25 +207,13 @@ def label_kontext_images():
                 with open(paths['R'], 'rb') as img_file:
                     img_r_data = base64.b64encode(img_file.read()).decode('utf-8')
                     # 获取R图片的格式
-                    img_r_format = paths['R'].split('.')[-1].lower()
-                    # 确保格式是有效的MIME类型
-                    if img_r_format not in ['png', 'jpeg', 'jpg', 'webp', 'gif']:
-                        img_r_format = 'png'  # 默认为png
-                    # jpg需要特殊处理为jpeg
-                    if img_r_format == 'jpg':
-                        img_r_format = 'jpeg'
+                    img_r_format = detect_image_format(img_r_data)
                 
                 with open(paths['T'], 'rb') as img_file:
                     img_t_data = base64.b64encode(img_file.read()).decode('utf-8')
                     # 获取T图片的格式
-                    img_t_format = paths['T'].split('.')[-1].lower()
-                    # 确保格式是有效的MIME类型
-                    if img_t_format not in ['png', 'jpeg', 'jpg', 'webp', 'gif']:
-                        img_t_format = 'png'  # 默认为png
-                    # jpg需要特殊处理为jpeg
-                    if img_t_format == 'jpg':
-                        img_t_format = 'jpeg'
-                
+                    img_t_format = detect_image_format(img_t_data)
+                print(img_r_format,img_t_format)
                 # Call OpenAI API
                 try:
                     response = client.chat.completions.create(

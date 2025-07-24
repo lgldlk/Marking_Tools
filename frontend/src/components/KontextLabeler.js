@@ -70,7 +70,7 @@ const KontextLabeler = () => {
       return files.map((file) => {
         // 获取基本名称和后缀
         const fullName = file.name;
-        const baseName = fullName.split('_')[0];
+        const baseName = fullName.split(/_(R|T)\./)[0];
         const suffix = fullName.includes('_R.') ? 'R' : fullName.includes('_T.') ? 'T' : 'unknown';
 
         return {
